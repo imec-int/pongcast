@@ -12,7 +12,7 @@ var url = require('url');
 // parsing some data from the receiver url:
 var receiverUrl = url.parse(config.chromecastApp.receiverurl);
 
-var nrOfPlayersConnected = 0;
+var serverAddress = '';
 
 var app = express();
 
@@ -21,7 +21,7 @@ app.configure(function(){
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'jade');
 	app.use(express.favicon());
-	app.use(express.logger('dev'));
+	// app.use(express.logger('dev'));
 	app.use(express.bodyParser());
 	app.use(express.methodOverride());
 	app.use(express.cookieParser('pongcast654646416843161'));
@@ -58,11 +58,7 @@ app.get(receiverUrl.path, function (req, res){
 		title: config.chromecastApp.title
 	});
 
-	console.log("> Chromecast app connected to this webserver.");
-	var serverAddress = req.protocol + "://" + req.get('host');
-	console.log("> Go to '"+serverAddress+"/controller' to test it out");
-
-	nrOfPlayersConnected = 0;
+	serverAddress = req.protocol + "://" + req.get('host');
 });
 
 app.get('/controller', function (req, res){
@@ -85,40 +81,54 @@ function findChromecastAndRunApp (app, callback) {
 	chromecast.discover();
 }
 
-io.sockets.on('connection', function (socket) {
-	console.log("> some socket client connected");
+io.sockets.on('connection', function (newSocket) {
 
 	// let's define 2 rooms: chromecast & controller, see public/controller.js and public/receiver.js
-	socket.on('room', function (room) {
-		console.log("Adding client to room: " + room);
-        socket.join(room);
+	newSocket.on('room', function (room) {
 
         if( room == 'chromecast'){
+        	// enter room:
+        	newSocket.join(room);
+
+        	console.log("> Chromecast app connected to this webserver.");
+			console.log("> Go to '"+serverAddress+"/controller' to test it out");
+
         	// send play video:
-			socket.emit('playvideo', {});
+			newSocket.emit('playvideo', {});
 		}
 
         if( room == 'controller' ){
-        	if(nrOfPlayersConnected >= 2) return console.log("Max players (2) connected");
 
-        	var playerid = nrOfPlayersConnected+1;
-        	nrOfPlayersConnected++;
+			switch (io.sockets.clients('controller').length) {
+				case 0:
+					newSocket.playerid = 1;
+					break;
+				case 1:
+					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
+					break;
+				default:
+					io.sockets.clients('controller')[0].disconnect(); // disconnect first one in the room
+					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
+					break;
+			}
 
-        	addPlayerToGame(playerid);
-        	listenToPlayer(socket, playerid);
+        	addPlayerToGame( newSocket.playerid );
+        	listenToPlayer(newSocket, newSocket.playerid );
+
+        	// enter room:
+        	newSocket.join(room);
         }
     });
 });
 
+
 function addPlayerToGame (playerid) {
 	io.sockets.in('chromecast').emit('player'+playerid+'.enters', {});
 
-	console.log('player'+playerid+'.enters');
+	console.log('> player '+playerid+' enters');
 }
 
 function listenToPlayer (playersocket, playerid) {
-	console.log('listening to player ' + playerid);
-
 	playersocket.on('controller.deviceorientation', function (rotation) {
 		// console.log(data);
 		io.sockets.in('chromecast').emit('player'+playerid+'.moves', rotation2y(rotation) );
@@ -145,5 +155,6 @@ function rotation2y(rotation) {
 	y = y * (config.chromecastSpecs.height - barHeight)/150; // now it ranges from 0 to window height
 	return y;
 };
+
 
 
