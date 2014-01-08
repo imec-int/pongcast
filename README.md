@@ -7,7 +7,7 @@ Playing Pong on the Google Chromecast
 
 ##features
 
-backhand/forehand detection by accelerometer
-user detection
-scoreboard
-metrics
+- backhand/forehand detection by accelerometer
+- user detection
+- scoreboard
+- metrics
