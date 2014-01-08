@@ -119,10 +119,26 @@ function addPlayerToGame (playerid) {
 function listenToPlayer (playersocket, playerid) {
 	console.log('listening to player ' + playerid);
 
-	playersocket.on('controller.deviceorientation', function (data) {
+	playersocket.on('controller.deviceorientation', function (rotation) {
 		// console.log(data);
-		io.sockets.in('chromecast').emit('player'+playerid+'.moves', data);
+		io.sockets.in('chromecast').emit('player'+playerid+'.moves', rotation2y(rotation) );
 	});
 }
+
+function rotation2y(rotation) {
+	var degrees = rotation.lr;
+	var barHeight = 200; //height of the pong bar, see receiver.styl
+
+	if(degrees>180)
+		degrees =  degrees - 360; // Android fix, for some reason, the Android rotation goes from -90 till 270
+
+	// degrees now ranges from -180 to +180
+	// let's cut it from -150 to +0, that feels good on my phone
+	degrees = Math.max(degrees, -150);
+	degrees = Math.min(degrees, +0);
+	var y = degrees + 150; // now it ranges from 0 to 150;
+	y = y * (config.chromecastSpecs.height - barHeight)/150; // now it ranges from 0 to window height
+	return y;
+};
 
 

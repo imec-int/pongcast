@@ -52,7 +52,7 @@ var Controller = function (options){
 
 		socket.emit('controller.deviceorientation', { lr: tiltLR, fb: tiltFB });
 		//console.log(tiltLR+" - "+tiltFB);
-		$(".messages").html(tiltLR+" - "+tiltFB);
+		$(".messages").html( Math.round(tiltLR)+" | "+ Math.round(tiltFB));
 
 		// Apply the transform to the image
 		var logo = document.getElementById("imgLogo");
