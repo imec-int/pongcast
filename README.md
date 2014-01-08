@@ -1,7 +1,7 @@
 pongcast
 ========
 
-Playing Pong on the Google Chromecast
+Multiplayer Pong on the Google Chromecast
 
 
 
