@@ -1,8 +1,11 @@
 var Receiver = function (options){
 	var $messages = $('.messages');
 	var $body = $('body');
+	var $pongbar = $("#pongbar");
+	var windowheightscaler = ($(window).height() - $pongbar.height())/150;
 
-	var socket = null;
+	var socket, degrees, y;
+
 
 	var init = function () {
 		initSocket();
@@ -42,22 +45,17 @@ var Receiver = function (options){
 	};
 
 	var movePongbar = function (rotation) {
-		$pongbar = $("#pongbar");
-
-		var degrees = rotation.lr;
+		degrees = rotation.lr;
 
 		// rotation.lr ranges from -180 to +180
 		// let's cut it from -150 to +0, that feels good on my iPhone
 		degrees = Math.max(degrees, -150);
 		degrees = Math.min(degrees, +0);
-
-		console.log(rotation.lr);
-
-		var y = degrees + 150; // now it ranges from 0 to 150;
-		y = y * ( $(window).height() - $pongbar.height() ) / 150; // now it ranges from 0 to window height
+		y = degrees + 150; // now it ranges from 0 to 150;
+		y = y * windowheightscaler; // now it ranges from 0 to window height
 
 		//console.log(rotation.lr);
-		$("#pongbar")[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
+		$pongbar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
 	};
 
 	return {
