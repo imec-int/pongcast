@@ -141,8 +141,9 @@ function listenToPlayer (playersocket, playerid) {
     	console.log('> player ' + playerid + ' left');
     	io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
 
-    	if(io.sockets.clients('controller').length != 2)
-    		io.sockets.in('chromecast').emit('video.pause');
+
+    	// stop video if one disconnects
+    	io.sockets.in('chromecast').emit('video.stop');
     });
 }
 

@@ -31,7 +31,7 @@ var Receiver = function (options){
 		});
 
 		socket.on('video.play', onVideoPlay);
-		socket.on('video.pause', onVideoPause);
+		socket.on('video.stop', onVideoStop);
 		socket.on('video.volume', onVideoVolume);
 
 		socket.on('player1.enters', onPlayer1Enters);
@@ -43,11 +43,11 @@ var Receiver = function (options){
 	};
 
 	var onVideoPlay = function () {
-		$('video')[0].currentTime = 0;
 		$('video')[0].play();
 	};
 
-	var onVideoPause = function () {
+	var onVideoStop = function () {
+		$('video')[0].currentTime = 0;
 		$('video')[0].pause();
 	};
 
