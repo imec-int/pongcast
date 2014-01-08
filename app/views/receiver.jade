@@ -12,11 +12,7 @@ html
 		script(src='/socket.io/socket.io.js')
 		script(type='text/javascript', src='/javascripts/receiver.js')
 	body
-		.container
-			.messages messages
-			.images
-			video
-				source(src="/video/TienseSuiker.mp4", type='video/mp4')
+		#pongbar
 
-			br
-			img.testimage(src="/images/santa.png")
+		video.fakefullscreen
+			source(src="/video/TienseSuiker.mp4", type='video/mp4')
