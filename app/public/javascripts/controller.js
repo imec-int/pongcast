@@ -18,6 +18,7 @@ var Controller = function (options){
 		if(socket) return; // already initialized
 
 		socket = io.connect(window.location.hostname);
+
 		// some debugging statements concerning socket.io
 		socket.on('reconnecting', function(seconds){
 			console.log('reconnecting in ' + seconds + ' seconds');
@@ -27,6 +28,10 @@ var Controller = function (options){
 		});
 		socket.on('reconnect_failed', function(){
 			console.log('failed to reconnect');
+		});
+		// add ourselves to the 'controller' room
+		socket.on('connect', function() {
+			socket.emit('room', 'controller');
 		});
 	};
 

@@ -26,9 +26,13 @@ var Receiver = function (options){
 		socket.on('reconnect_failed', function(){
 			console.log('failed to reconnect');
 		});
+		// add ourselves to the 'chromecast' room
+		socket.on('connect', function() {
+			socket.emit('room', 'chromecast');
+		});
 
-		socket.on('chromecast.playvideo', onPlayvideo);
-		socket.on('chromecast.changeoriention', onChangeorientation);
+		socket.on('playvideo', onPlayvideo);
+		socket.on('changeoriention', onChangeorientation);
 	};
 
 	var onPlayvideo = function (data) {

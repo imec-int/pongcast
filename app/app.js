@@ -85,13 +85,19 @@ function findChromecastAndRunApp (app, callback) {
 io.sockets.on('connection', function (socket) {
 	console.log("> some socket client connected");
 
+	// let's define 2 rooms: chromecast & controller, see public/controller.js and public/receiver.js
+	socket.on('room', function (room) {
+		console.log("Adding client to room: " + room);
+        socket.join(room);
+    });
+
 	// send play video:
-	io.sockets.emit('chromecast.playvideo', {});
+	io.sockets.in('chromecast').emit('playvideo', {});
 
 	// listening voor messages:
 	socket.on('controller.deviceorientation', function (data) {
 		// console.log(data);
-		io.sockets.emit('chromecast.changeoriention', data);
+		io.sockets.in('chromecast').emit('changeoriention', data);
 	});
 });
 
