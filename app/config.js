@@ -3,6 +3,7 @@
 exports.chromecastApp = {
 	appid       : '58e94236-9c71-4239-bfbc-caedb87dd0b0',
 	receiverurl : 'http://cast1.neat.be/receiver',
+	title       : 'PongCast'
 };
 
 // The receiverurl can be any url (even a local one)

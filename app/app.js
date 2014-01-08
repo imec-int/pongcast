@@ -53,7 +53,7 @@ io.set('log level', 0);
 // using the path extracted from the receiver-url in the config.js file so you don't have to do this manually
 app.get(receiverUrl.path, function (req, res){
 	res.render('receiver', {
-		title: 'Pong'
+		title: config.chromecastApp.title
 	});
 
 	console.log("> Chromecast app connected to this webserver.");
