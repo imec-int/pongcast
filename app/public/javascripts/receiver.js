@@ -36,6 +36,8 @@ var Receiver = function (options){
 		socket.on('player2.enters', onPlayer2Enters);
 		socket.on('player1.moves', onPlayer1Moves);
 		socket.on('player2.moves', onPlayer2Moves);
+		socket.on('player1.leaves', onPlayer1Leaves);
+		socket.on('player2.leaves', onPlayer2Leaves);
 	};
 
 	var onPlayvideo = function (data) {
@@ -56,6 +58,14 @@ var Receiver = function (options){
 
 	var onPlayer2Moves = function (y) {
 		$player2bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
+	};
+
+	var onPlayer1Leaves = function (playerid) {
+		$player1bar.hide();
+	};
+
+	var onPlayer2Leaves = function (playerid) {
+		$player2bar.hide();
 	};
 
 	return {

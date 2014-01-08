@@ -123,6 +123,11 @@ function listenToPlayer (playersocket, playerid) {
 		// console.log(data);
 		io.sockets.in('chromecast').emit('player'+playerid+'.moves', rotation2y(rotation) );
 	});
+
+	playersocket.on('disconnect', function() {
+    	console.log('> player ' + playerid + ' left');
+    	io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
+    });
 }
 
 function rotation2y(rotation) {
