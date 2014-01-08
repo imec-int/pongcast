@@ -1,0 +1,30 @@
+doctype html5
+html
+	head
+		meta(name='viewport', content='initial-scale=1.0, user-scalable=no')
+		title= title
+		link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,400italic,100', rel='stylesheet', type='text/css')
+
+		link(rel='stylesheet', href="/stylesheets/controller.css")
+		link(rel='stylesheet', href="/stylesheets/receiver.css")
+
+		script(type='text/javascript', src='//code.jquery.com/jquery.min.js')
+		script(type='text/javascript', src='/vendor/jquery.tmpl.min.js')
+		script(type='text/javascript', src='/socket.io/socket.io.js')
+
+	body
+		.container
+			h1.messages messages
+			br
+			.imgContainer
+				img#imgLogo.logo(src='/images/santa.png')
+			br
+			br
+			br
+			article#scene
+				#swing-up
+					span
+				#swing-down
+					span
+				#divider
+		script(type='text/javascript', src='/javascripts/controller.js')

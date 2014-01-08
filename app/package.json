@@ -1,0 +1,14 @@
+{
+  "name": "untitled",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "3.0.3",
+    "jade": "*",
+    "stylus": "~0.40.3",
+    "chromecast": "0.0.4",
+    "socket.io": "~0.9.16"
+  }
+}
