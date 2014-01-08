@@ -12,6 +12,8 @@ var url = require('url');
 // parsing some data from the receiver url:
 var receiverUrl = url.parse(config.chromecastApp.receiverurl);
 
+var nrOfPlayersConnected = 0;
+
 var app = express();
 
 app.configure(function(){
@@ -59,6 +61,8 @@ app.get(receiverUrl.path, function (req, res){
 	console.log("> Chromecast app connected to this webserver.");
 	var serverAddress = req.protocol + "://" + req.get('host');
 	console.log("> Go to '"+serverAddress+"/controller' to test it out");
+
+	nrOfPlayersConnected = 0;
 });
 
 app.get('/controller', function (req, res){
@@ -81,7 +85,6 @@ function findChromecastAndRunApp (app, callback) {
 	chromecast.discover();
 }
 
-
 io.sockets.on('connection', function (socket) {
 	console.log("> some socket client connected");
 
@@ -89,16 +92,37 @@ io.sockets.on('connection', function (socket) {
 	socket.on('room', function (room) {
 		console.log("Adding client to room: " + room);
         socket.join(room);
+
+        if( room == 'chromecast'){
+        	// send play video:
+			socket.emit('playvideo', {});
+		}
+
+        if( room == 'controller' ){
+        	if(nrOfPlayersConnected >= 2) return console.log("Max players (2) connected");
+
+        	var playerid = nrOfPlayersConnected+1;
+        	nrOfPlayersConnected++;
+
+        	addPlayerToGame(playerid);
+        	listenToPlayer(socket, playerid);
+        }
     });
-
-	// send play video:
-	io.sockets.in('chromecast').emit('playvideo', {});
-
-	// listening voor messages:
-	socket.on('controller.deviceorientation', function (data) {
-		// console.log(data);
-		io.sockets.in('chromecast').emit('changeoriention', data);
-	});
 });
+
+function addPlayerToGame (playerid) {
+	io.sockets.in('chromecast').emit('player'+playerid+'.enters', {});
+
+	console.log('player'+playerid+'.enters');
+}
+
+function listenToPlayer (playersocket, playerid) {
+	console.log('listening to player ' + playerid);
+
+	playersocket.on('controller.deviceorientation', function (data) {
+		// console.log(data);
+		io.sockets.in('chromecast').emit('player'+playerid+'.moves', data);
+	});
+}
 
 

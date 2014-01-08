@@ -1,8 +1,9 @@
 var Receiver = function (options){
 	var $messages = $('.messages');
 	var $body = $('body');
-	var $pongbar = $("#pongbar");
-	var windowheightscaler = ($(window).height() - $pongbar.height())/150;
+	var $player1bar = $("#player1bar");
+	var $player2bar = $("#player2bar");
+	var windowheightscaler = ($(window).height() - $player1bar.height())/150;
 
 	var socket, degrees, y;
 
@@ -32,23 +33,26 @@ var Receiver = function (options){
 		});
 
 		socket.on('playvideo', onPlayvideo);
-		socket.on('changeoriention', onChangeorientation);
+
+		socket.on('player1.enters', onPlayer1Enters);
+		socket.on('player2.enters', onPlayer2Enters);
+		socket.on('player1.moves', onPlayer1Moves);
+		socket.on('player2.moves', onPlayer2Moves);
 	};
 
 	var onPlayvideo = function (data) {
 		$('video')[0].play();
 	};
 
-	var onChangeorientation = function(rotation) {
-		// rotateElement( $('video')[0], rotation );
-		movePongbar( rotation );
+	var onPlayer1Enters = function (playerid) {
+		$player1bar.show(); // just show it, dont keep track of number of players, that happens on the server
 	};
 
-	var rotateElement = function (el, rotation) {
-		el.style.webkitTransform = "rotate(" + rotation.lr + "deg) rotate3d(1,0,0, " + (rotation.fb * -1) + "deg)";
+	var onPlayer2Enters = function (playerid) {
+		$player2bar.show(); // just show it, dont keep track of number of players, that happens on the server
 	};
 
-	var movePongbar = function (rotation) {
+	var onPlayer1Moves = function (rotation) {
 		degrees = rotation.lr;
 
 		// rotation.lr ranges from -180 to +180
@@ -59,7 +63,21 @@ var Receiver = function (options){
 		y = y * windowheightscaler; // now it ranges from 0 to window height
 
 		//console.log(rotation.lr);
-		$pongbar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
+		$player1bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
+	};
+
+	var onPlayer2Moves = function (rotation) {
+		degrees = rotation.lr;
+
+		// rotation.lr ranges from -180 to +180
+		// let's cut it from -150 to +0, that feels good on my iPhone
+		degrees = Math.max(degrees, -150);
+		degrees = Math.min(degrees, +0);
+		y = degrees + 150; // now it ranges from 0 to 150;
+		y = y * windowheightscaler; // now it ranges from 0 to window height
+
+		//console.log(rotation.lr);
+		$player2bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
 	};
 
 	return {
