@@ -15,12 +15,12 @@ Object.extend = function(destination, source) {
 
 if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 	window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
-																 window.mozRequestAnimationFrame    ||
-																 window.oRequestAnimationFrame      ||
-																 window.msRequestAnimationFrame     ||
-																 function(callback, element) {
-																	 window.setTimeout(callback, 1000 / 60);
-																 }
+                                   window.mozRequestAnimationFrame    ||
+                                   window.oRequestAnimationFrame      ||
+                                   window.msRequestAnimationFrame     ||
+                                   function(callback, element) {
+                                       window.setTimeout(callback, 1000 / 60);
+                                   }
 }
 
 
@@ -29,8 +29,8 @@ if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimatio
 //=============================================================================
 
 Game = {
-	start: function(id, game, cfg) {
-		return Object.construct(Game.Runner, id, game, cfg).game; // return the game instance, not the runner (caller can always get at the runner via game.runner)
+	start: function(game, cfg) {
+		return Object.construct(Game.Runner, game, cfg).game; // return the game instance, not the runner (caller can always get at the runner via game.runner)
 	},
 
 	addEvent:    function(obj, type, fn) { obj.addEventListener(type, fn, false);    },
@@ -86,21 +86,12 @@ Game = {
 
 	Runner: {
 
-		initialize: function(id, game, cfg) {
+		initialize: function(game, cfg) {
 			this.cfg          = Object.extend(game.Defaults || {}, cfg || {}); // use game defaults (if any) and extend with custom cfg (if any)
 			this.fps          = this.cfg.fps || 60;
 			this.interval     = 1000.0 / this.fps;
-			this.canvas       = document.getElementById(id);
-			this.width        = this.cfg.width  || this.canvas.offsetWidth;
-			this.height       = this.cfg.height || this.canvas.offsetHeight;
-			this.front        = this.canvas;
-			this.front.width  = this.width;
-			this.front.height = this.height;
-			this.back         = Game.createCanvas();
-			this.back.width   = this.width;
-			this.back.height  = this.height;
-			this.front2d      = this.front.getContext('2d');
-			this.back2d       = this.back.getContext('2d');
+			this.width        = this.cfg.width;
+			this.height       = this.cfg.height;
 			this.addEvents();
 
 			this.game = Object.construct(game, this, this.cfg); // finally construct the game object itself
@@ -130,10 +121,7 @@ Game = {
 		},
 
 		draw: function() {
-			this.back2d.clearRect(0, 0, this.width, this.height);
 			this.game.draw(this.back2d);
-			this.front2d.clearRect(0, 0, this.width, this.height);
-			this.front2d.drawImage(this.back, 0, 0);
 		},
 
 		addEvents: function() {

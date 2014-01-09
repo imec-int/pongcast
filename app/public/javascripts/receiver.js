@@ -12,8 +12,13 @@ var Receiver = function (options){
 		initSocket();
 
 		Game.ready(function() {
-			game = Game.start('game', Pong);
+			game = Game.start(Pong);
 			window.mygame = game; // to debug in console
+
+			setTimeout(function () {
+				game.start(); //debug
+			}, 1000);
+
 		});
 	};
 

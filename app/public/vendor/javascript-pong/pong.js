@@ -13,13 +13,7 @@ Pong = {
 		paddleSpeed:  2,     // should be able to cross court vertically   in 2 seconds
 		ballSpeed:    2,     // should be able to cross court horizontally in 4 seconds, at starting speed ...
 		ballAccel:    8,     // ... but accelerate as time passes
-		ballRadius:   10
-	},
-
-	Colors: {
-		walls: 'green',
-		ball:  'red',
-		score: 'white'
+		ballRadius:   25/2
 	},
 
 	//-----------------------------------------------------------------------------
@@ -147,45 +141,8 @@ Pong = {
 		},
 
 		draw: function(ctx, scorePlayer1, scorePlayer2) {
-			ctx.fillStyle = Pong.Colors.walls;
-			for(var n = 0 ; n < this.walls.length ; n++)
-				ctx.fillRect(this.walls[n].x, this.walls[n].y, this.walls[n].width, this.walls[n].height);
-			this.drawDigit(ctx, scorePlayer1, this.score1.x, this.score1.y, this.score1.w, this.score1.h);
-			this.drawDigit(ctx, scorePlayer2, this.score2.x, this.score2.y, this.score2.w, this.score2.h);
-		},
-
-		drawDigit: function(ctx, n, x, y, w, h) {
-			ctx.fillStyle = Pong.Colors.score;
-			var dw = dh = this.ww*4/5;
-			var blocks = Pong.Court.DIGITS[n];
-			if (blocks[0])
-				ctx.fillRect(x, y, w, dh);
-			if (blocks[1])
-				ctx.fillRect(x, y, dw, h/2);
-			if (blocks[2])
-				ctx.fillRect(x+w-dw, y, dw, h/2);
-			if (blocks[3])
-				ctx.fillRect(x, y + h/2 - dh/2, w, dh);
-			if (blocks[4])
-				ctx.fillRect(x, y + h/2, dw, h/2);
-			if (blocks[5])
-				ctx.fillRect(x+w-dw, y + h/2, dw, h/2);
-			if (blocks[6])
-				ctx.fillRect(x, y+h-dh, w, dh);
-		},
-
-		DIGITS: [
-			[1, 1, 1, 0, 1, 1, 1], // 0
-			[0, 0, 1, 0, 0, 1, 0], // 1
-			[1, 0, 1, 1, 1, 0, 1], // 2
-			[1, 0, 1, 1, 0, 1, 1], // 3
-			[0, 1, 1, 1, 0, 1, 0], // 4
-			[1, 1, 0, 1, 0, 1, 1], // 5
-			[1, 1, 0, 1, 1, 1, 1], // 6
-			[1, 0, 1, 0, 0, 1, 0], // 7
-			[1, 1, 1, 1, 1, 1, 1], // 8
-			[1, 1, 1, 1, 0, 1, 0]  // 9
-		]
+			// console.log(scorePlayer1 + " - " + scorePlayer2);
+		}
 
 	},
 
@@ -196,6 +153,8 @@ Pong = {
 	Paddle: {
 
 		initialize: function(pong, rhs) {
+			this.paddleid = (rhs)?2:1;
+
 			this.pong   = pong;
 			this.width  = pong.cfg.paddleWidth;
 			this.height = pong.cfg.paddleHeight;
@@ -233,8 +192,7 @@ Pong = {
 		},
 
 		draw: function(ctx) {
-			ctx.fillStyle = Pong.Colors.walls;
-			ctx.fillRect(this.x, this.y, this.width, this.height);
+			document.getElementById('paddle'+this.paddleid).style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
 		},
 
 		moveUp:         function() { this.up   = 1; },
@@ -322,15 +280,7 @@ Pong = {
 		},
 
 		draw: function(ctx) {
-			var w = h = this.radius * 2;
-			ctx.fillStyle = Pong.Colors.ball;
-
-			ctx.beginPath();
-			ctx.arc(this.x - this.radius, this.y - this.radius, w, h, Math.PI*2, true);
-			ctx.closePath();
-			ctx.fill();
-
-			//ctx.fillRect(this.x - this.radius, this.y - this.radius, w, h);
+			document.getElementById('ball').style.webkitTransform = 'translate3d('+(this.x-this.radius)+'px,'+(this.y-2*this.radius)+'px,0) scale3d(1,1,1)';
 		}
 
 	},

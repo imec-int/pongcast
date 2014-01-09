@@ -1,32 +1,57 @@
 @import style
 
+wallcolor   = #dc006b
+netcolor    = #dc006b
+paddlecolor = #F7F7F4
+ballcolor   = #C30000
+
+courtwidth   = 1280px
+courtheight  = 720px
+
 body
 	background-color black
 
-video
-	width 640px
-	height 480px
-
-video.fakefullscreen
-	position fixed
-	width 100%
-	height 100%
+#court
+	position absolute
+	top 0px
 	left 0px
-	top 0px
-	z-index 0
+	z-index 33
+	width courtwidth
+	height courtheight
+	border-top 12px solid wallcolor
+	border-bottom 12px solid wallcolor
 
-#player1bar, #player2bar
-	position fixed
-	display none
+
+#court:before
+	position absolute
+	left 50%
 	top 0px
+	content ''
+	width 0px
+	height 100%
+	border-left 12px solid netcolor
+	margin-left -6px // half the border size
+
+#paddle1, #paddle2
+	position absolute
+	top 0px
+	left 0px // will be translated by script
 	width 30px
 	height 200px
-	background-color offwhite
+	margin-top -12px // wall size
+	background-color paddlecolor
 	z-index 99
 
-#player1bar
-	left 20px
 
-#player2bar
-	right 20px
+#ball
+	position absolute
+	background-color ballcolor
+	width 25px
+	height 25px
+	border-radius 50%
+
+
+
+
+
 
