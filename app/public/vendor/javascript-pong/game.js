@@ -33,9 +33,6 @@ Game = {
 		return Object.construct(Game.Runner, game, cfg).game; // return the game instance, not the runner (caller can always get at the runner via game.runner)
 	},
 
-	addEvent:    function(obj, type, fn) { obj.addEventListener(type, fn, false);    },
-	removeEvent: function(obj, type, fn) { obj.removeEventListener(type, fn, false); },
-
 	ready: function(fn) {
 		if(document.readyState === "complete" || document.readyState === "interactive")
 			fn();
@@ -43,17 +40,8 @@ Game = {
 			Game.addEvent(document, 'DOMContentLoaded', fn);
 	},
 
-	createCanvas: function() {
-		return document.createElement('canvas');
-	},
-
-
 	random: function(min, max) {
 		return (min + (Math.random() * (max - min)));
-	},
-
-	timestamp: function() {
-		return new Date().getTime();
 	},
 
 	KEY: {
@@ -88,8 +76,6 @@ Game = {
 
 		initialize: function(game, cfg) {
 			this.cfg          = Object.extend(game.Defaults || {}, cfg || {}); // use game defaults (if any) and extend with custom cfg (if any)
-			this.fps          = this.cfg.fps || 60;
-			this.interval     = 1000.0 / this.fps;
 			this.width        = this.cfg.width;
 			this.height       = this.cfg.height;
 			this.addEvents();
@@ -98,19 +84,13 @@ Game = {
 		},
 
 		start: function() { // game instance should call runner.start() when its finished initializing and is ready to start the game loop
-			this.lastFrame = Game.timestamp();
-			//this.timer     = setInterval(this.loop.bind(this), this.interval);
-			this.timer = requestAnimationFrame( this.loop.bind(this) );
-		},
-
-		stop: function() {
-			clearInterval(this.timer);
+			this.lastFrame = Date.now();
+			requestAnimationFrame( this.loop.bind(this) );
 		},
 
 		loop: function() {
-			var start  = Game.timestamp(); this.update((start - this.lastFrame)/1000.0); // send dt as seconds
-			var middle = Game.timestamp(); this.draw();
-			var end    = Game.timestamp();
+			var start  = Date.now();
+			this.update((start - this.lastFrame)/1000.0); // send dt as seconds
 			this.lastFrame = start;
 
 			requestAnimationFrame( this.loop.bind(this) )
@@ -120,31 +100,13 @@ Game = {
 			this.game.update(dt);
 		},
 
-		draw: function() {
-			this.game.draw(this.back2d);
-		},
-
 		addEvents: function() {
-			Game.addEvent(document, 'keydown', this.onkeydown.bind(this));
-			Game.addEvent(document, 'keyup',   this.onkeyup.bind(this));
+			document.addEventListener( 'keydown', this.onkeydown.bind(this) );
+			document.addEventListener( 'keyup', this.onkeyup.bind(this) );
 		},
 
 		onkeydown: function(ev) { if (this.game.onkeydown) this.game.onkeydown(ev.keyCode); },
-		onkeyup:   function(ev) { if (this.game.onkeyup)   this.game.onkeyup(ev.keyCode);   },
-
-		alert: function(msg) {
-			this.stop(); // alert blocks thread, so need to stop game loop in order to avoid sending huge dt values to next update
-			result = window.alert(msg);
-			this.start();
-			return result;
-		},
-
-		confirm: function(msg) {
-			this.stop(); // alert blocks thread, so need to stop game loop in order to avoid sending huge dt values to next update
-			result = window.confirm(msg);
-			this.start();
-			return result;
-		}
+		onkeyup:   function(ev) { if (this.game.onkeyup)   this.game.onkeyup(ev.keyCode);   }
 
 		//-------------------------------------------------------------------------
 

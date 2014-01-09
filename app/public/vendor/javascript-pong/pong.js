@@ -25,10 +25,9 @@ Pong = {
 		this.height      = runner.height;
 		this.playing     = false;
 		this.scores      = [0, 0];
-		this.menu        = Object.construct(Pong.Menu,   this);
 		this.court       = Object.construct(Pong.Court,  this);
-		this.leftPaddle  = Object.construct(Pong.Paddle, this);
-		this.rightPaddle = Object.construct(Pong.Paddle, this, true);
+		this.leftPaddle  = Object.construct(Pong.Paddle, this, 0);
+		this.rightPaddle = Object.construct(Pong.Paddle, this, 1);
 		this.ball        = Object.construct(Pong.Ball,   this);
 		this.runner.start();
 	},
@@ -39,6 +38,7 @@ Pong = {
 		this.scores = [0, 0];
 		this.playing = true;
 		this.ball.reset();
+		this.court.reset();
 	},
 
 	stop: function(ask) {
@@ -50,7 +50,7 @@ Pong = {
 	goal: function(playerNo) {
 		this.scores[playerNo] += 1;
 		if (this.scores[playerNo] == 4) {
-			this.menu.declareWinner(playerNo);
+			this.court.declareWinner(playerNo);
 			this.stop();
 		}
 		else {
@@ -73,11 +73,6 @@ Pong = {
 		}
 	},
 
-	draw: function(ctx) {
-		if (this.playing)
-			this.ball.draw(ctx);
-	},
-
 	onkeydown: function(keyCode) {
 		switch(keyCode) {
 			case Game.KEY.ZERO: this.startDemo();            break;
@@ -97,17 +92,6 @@ Pong = {
 			case Game.KEY.A: this.leftPaddle.stopMovingDown();  break;
 			case Game.KEY.P: this.rightPaddle.stopMovingUp();   break;
 			case Game.KEY.L: this.rightPaddle.stopMovingDown(); break;
-		}
-	},
-
-	//=============================================================================
-	// MENU
-	//=============================================================================
-
-	Menu: {
-		declareWinner: function(playerNo) {
-			$("#winner"+playerNo).show();
-			console.log("winner: " + playerNo);
 		}
 	},
 
@@ -141,7 +125,17 @@ Pong = {
 
 		updatePlayerScore: function (playerNo, score) {
 			$("#score"+playerNo).html(score);
-			console.log('player' + playerNo + ' scores: ' + score);
+		},
+
+		declareWinner: function(playerNo) {
+			$("#winner"+playerNo).show();
+		},
+
+		reset: function () {
+			$("#score0").html('0');
+			$("#score1").html('0');
+			$("#winner0").hide();
+			$("#winner1").hide();
 		}
 
 	},
@@ -152,8 +146,8 @@ Pong = {
 
 	Paddle: {
 
-		initialize: function(pong, rhs) {
-			this.paddleid = (rhs)?2:1;
+		initialize: function(pong, playerNo) {
+			this.playerNo = playerNo;
 
 			this.pong   = pong;
 			this.width  = pong.cfg.paddleWidth;
@@ -161,7 +155,7 @@ Pong = {
 			this.minY   = pong.cfg.wallWidth;
 			this.maxY   = pong.height - pong.cfg.wallWidth - this.height;
 			this.speed  = (this.maxY - this.minY) / pong.cfg.paddleSpeed;
-			this.setpos(rhs ? pong.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
+			this.setpos((playerNo == 1) ? pong.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
 			this.setdir(0);
 		},
 
@@ -173,7 +167,7 @@ Pong = {
 			this.top    = this.y;
 			this.bottom = this.y + this.height;
 
-			this.updatePaddlePosition();
+			this.updatePosition();
 		},
 
 		setdir: function(dy) {
@@ -193,8 +187,9 @@ Pong = {
 			}
 		},
 
-		updatePaddlePosition: function() {
-			document.getElementById('paddle'+this.paddleid).style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
+		updatePosition: function() {
+			console.log(this.playerNo);
+			document.getElementById('paddle'+this.playerNo).style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
 		},
 
 		moveUp:         function() { this.up   = 1; },
@@ -233,6 +228,8 @@ Pong = {
 			this.top    = this.y - this.radius;
 			this.right  = this.x + this.radius;
 			this.bottom = this.y + this.radius;
+
+			this.updatePosition();
 		},
 
 		setdir: function(dx, dy) {
@@ -281,7 +278,7 @@ Pong = {
 			this.setdir(pos.dx, pos.dy);
 		},
 
-		draw: function(ctx) {
+		updatePosition: function() {
 			document.getElementById('ball').style.webkitTransform = 'translate3d('+(this.x-this.radius)+'px,'+(this.y-2*this.radius)+'px,0) scale3d(1,1,1)';
 		}
 
