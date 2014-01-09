@@ -48,17 +48,11 @@ var Controller = function (options){
 		var tiltFB = eventData.beta;
 
 		// alpha is the compass direction the device is facing in degrees
-		var dir = eventData.alpha
+		// var dir = eventData.alpha
 
 		socket.emit('controller.deviceorientation', { lr: tiltLR, fb: tiltFB });
 		//console.log(tiltLR+" - "+tiltFB);
 		$(".messages").html( Math.round(tiltLR)+" | "+ Math.round(tiltFB));
-
-		// Apply the transform to the image
-		var logo = document.getElementById("imgLogo");
-		logo.style.webkitTransform = "rotate(" + tiltLR + "deg) rotate3d(1,0,0, " + (tiltFB * -1) + "deg)";
-		logo.style.MozTransform = "rotate(" + tiltLR + "deg)";
-		logo.style.transform = "rotate(" + tiltLR + "deg) rotate3d(1,0,0, " + (tiltFB * -1) + "deg)";
 	};
 
 
