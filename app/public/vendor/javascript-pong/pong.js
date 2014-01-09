@@ -56,6 +56,7 @@ Pong = {
 		else {
 			this.ball.reset(playerNo);
 		}
+		this.court.updatePlayerScore(playerNo, this.scores[playerNo]);
 	},
 
 	update: function(dt) {
@@ -73,9 +74,6 @@ Pong = {
 	},
 
 	draw: function(ctx) {
-		this.court.draw(ctx, this.scores[0], this.scores[1]);
-		this.leftPaddle.draw(ctx);
-		this.rightPaddle.draw(ctx);
 		if (this.playing)
 			this.ball.draw(ctx);
 	},
@@ -108,7 +106,7 @@ Pong = {
 
 	Menu: {
 		declareWinner: function(playerNo) {
-			$("#winner" + (playerNo+1)).show();
+			$("#winner"+playerNo).show();
 			console.log("winner: " + playerNo);
 		}
 	},
@@ -141,9 +139,9 @@ Pong = {
 			this.score2 = {x: 0.5 + (w/2) + 1.5*ww,      y: 2*ww, w: sw, h: sh};
 		},
 
-		draw: function(ctx, scorePlayer1, scorePlayer2) {
-			$("#score1").html(scorePlayer1);
-			$("#score2").html(scorePlayer2);
+		updatePlayerScore: function (playerNo, score) {
+			$("#score"+playerNo).html(score);
+			console.log('player' + playerNo + ' scores: ' + score);
 		}
 
 	},
@@ -174,6 +172,8 @@ Pong = {
 			this.right  = this.left + this.width;
 			this.top    = this.y;
 			this.bottom = this.y + this.height;
+
+			this.updatePaddlePosition();
 		},
 
 		setdir: function(dy) {
@@ -193,7 +193,7 @@ Pong = {
 			}
 		},
 
-		draw: function(ctx) {
+		updatePaddlePosition: function() {
 			document.getElementById('paddle'+this.paddleid).style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
 		},
 
