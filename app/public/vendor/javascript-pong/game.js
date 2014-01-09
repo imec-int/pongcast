@@ -54,7 +54,7 @@ if (!Object.extend) {
   };
 }
 
-/* NOT READY FOR PRIME TIME
+
 if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
   window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
                                  window.mozRequestAnimationFrame    ||
@@ -64,7 +64,7 @@ if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimatio
                                    window.setTimeout(callback, 1000 / 60);
                                  }
 }
-*/
+
 
 //=============================================================================
 // GAME
@@ -219,7 +219,8 @@ Game = {
 
     start: function() { // game instance should call runner.start() when its finished initializing and is ready to start the game loop
       this.lastFrame = Game.timestamp();
-      this.timer     = setInterval(this.loop.bind(this), this.interval);
+      //this.timer     = setInterval(this.loop.bind(this), this.interval);
+      this.timer = requestAnimationFrame( this.loop.bind(this) );
     },
 
     stop: function() {
@@ -232,6 +233,8 @@ Game = {
       var end    = Game.timestamp();
       this.updateStats(middle - start, end - middle);
       this.lastFrame = start;
+
+      requestAnimationFrame( this.loop.bind(this) )
     },
 
     update: function(dt) {
