@@ -108,6 +108,7 @@ Pong = {
 
 	Menu: {
 		declareWinner: function(playerNo) {
+			$("#winner" + (playerNo+1)).show();
 			console.log("winner: " + playerNo);
 		}
 	},
