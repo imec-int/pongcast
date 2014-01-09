@@ -141,7 +141,8 @@ Pong = {
 		},
 
 		draw: function(ctx, scorePlayer1, scorePlayer2) {
-			// console.log(scorePlayer1 + " - " + scorePlayer2);
+			$("#score1").html(scorePlayer1);
+			$("#score2").html(scorePlayer2);
 		}
 
 	},
