@@ -21,7 +21,7 @@ app.configure(function(){
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'jade');
 	app.use(express.favicon());
-	// app.use(express.logger('dev'));
+	app.use(express.logger('dev'));
 	app.use(express.bodyParser());
 	app.use(express.methodOverride());
 	app.use(express.cookieParser('pongcast654646416843161'));
@@ -102,10 +102,12 @@ io.sockets.on('connection', function (newSocket) {
 					break;
 				case 1:
 					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
+					io.sockets.in('chromecast').emit('game.start'); // only start game when both are connected
 					break;
 				default:
 					io.sockets.clients('controller')[0].disconnect(); // disconnect first one in the room
 					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
+					io.sockets.in('chromecast').emit('game.start'); // restart game
 					break;
 			}
 
@@ -136,6 +138,8 @@ function listenToPlayer (playersocket, playerid) {
     	io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
 
 
+    	// stop game if one disconnects
+    	io.sockets.in('chromecast').emit('game.stop');
     });
 }
 

@@ -9,9 +9,16 @@ html
 
 		script(type='text/javascript', src='//code.jquery.com/jquery.min.js')
 		script(type='text/javascript', src='/vendor/jquery.tmpl.min.js')
+
+		script(type='text/javascript', src='/vendor/javascript-pong/game.js')
+		script(type='text/javascript', src='/vendor/javascript-pong/pong.js')
+
 		script(src='/socket.io/socket.io.js')
 		script(type='text/javascript', src='/javascripts/receiver.js')
 	body
-		#player1bar
-		#player2bar
+		//- #player1bar
+		//- #player2bar
+
+		canvas#game
+
 
