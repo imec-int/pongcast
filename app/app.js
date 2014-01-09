@@ -102,12 +102,10 @@ io.sockets.on('connection', function (newSocket) {
 					break;
 				case 1:
 					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
-					io.sockets.in('chromecast').emit('video.play'); // only play video when both are connected
 					break;
 				default:
 					io.sockets.clients('controller')[0].disconnect(); // disconnect first one in the room
 					newSocket.playerid = (io.sockets.clients('controller')[0].playerid == 1)?2:1;
-					io.sockets.in('chromecast').emit('video.play'); // send play video again
 					break;
 			}
 
@@ -131,10 +129,6 @@ function listenToPlayer (playersocket, playerid) {
 	playersocket.on('controller.deviceorientation', function (rotation) {
 		// console.log(data);
 		io.sockets.in('chromecast').emit('player'+playerid+'.moves', rotation2y(rotation) );
-
-		if(playerid == 1){
-			io.sockets.in('chromecast').emit('video.volume', rotation2volume(rotation) );
-		}
 	});
 
 	playersocket.on('disconnect', function() {
@@ -142,8 +136,6 @@ function listenToPlayer (playersocket, playerid) {
     	io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
 
 
-    	// stop video if one disconnects
-    	io.sockets.in('chromecast').emit('video.stop');
     });
 }
 
@@ -168,26 +160,5 @@ function rotation2y (rotation) {
 	y = y * (config.chromecastSpecs.height - barHeight)/150; // now it ranges from 0 to window height
 	return y;
 };
-
-
-function rotation2volume (rotation) {
-	var degrees = rotation.lr;
-	var barHeight = 200; //height of the pong bar, see receiver.styl
-
-	if(degrees>180)
-		degrees = degrees - 360; // Android fix, for some reason, the Android rotation goes from -90 till 270
-
-	if(degrees<=180 && degrees > 90)
-		degrees = degrees - 360; // // now it ranges from 90 to -270
-
-	// let's cut it from -150 to +0, that feels good on my phone
-	degrees = Math.max(degrees, -150);
-	degrees = Math.min(degrees, +0);
-
-	var volume = degrees + 150; // now it ranges from 0 to 150;
-	volume = volume / 150; // now it ranges from 0 to 1
-	return 1-volume;
-};
-
 
 

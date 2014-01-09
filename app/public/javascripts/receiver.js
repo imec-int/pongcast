@@ -30,9 +30,6 @@ var Receiver = function (options){
 			socket.emit('room', 'chromecast');
 		});
 
-		socket.on('video.play', onVideoPlay);
-		socket.on('video.stop', onVideoStop);
-		socket.on('video.volume', onVideoVolume);
 
 		socket.on('player1.enters', onPlayer1Enters);
 		socket.on('player2.enters', onPlayer2Enters);
@@ -42,17 +39,6 @@ var Receiver = function (options){
 		socket.on('player2.leaves', onPlayer2Leaves);
 	};
 
-	var onVideoPlay = function () {
-		$('video')[0].play();
-	};
-
-	var onVideoStop = function () {
-		$('video')[0].currentTime = 0;
-		$('video')[0].pause();
-	};
-
-	var onVideoVolume = function (volume) {
-		$('video')[0].volume = volume;
 	};
 
 	var onPlayer1Enters = function (playerid) {
