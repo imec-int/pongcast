@@ -1,8 +1,8 @@
 // enter one of your chromecast whitelisted urls with their app id:
 
 exports.chromecastApp = {
-	appid       : '58e94236-9c71-4239-bfbc-caedb87dd0b0_3',
-	receiverurl : 'http://cast4.neat.be/receiver',
+	appid       : '58e94236-9c71-4239-bfbc-caedb87dd0b0',
+	receiverurl : 'http://cast1.neat.be/receiver',
 	title       : 'PongCast'
 };
 
