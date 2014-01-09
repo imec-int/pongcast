@@ -50,7 +50,7 @@ var Receiver = function (options){
 
 	var onGamestart = function (volume) {
 		if(!game) return console.log("Can't start game: game not loaded");
-		game.startDoublePlayer();
+		game.start();
 	};
 
 	var onGamestop = function (volume) {
