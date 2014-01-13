@@ -68,12 +68,12 @@ var Receiver = function (options){
 
 	var onPlayer1Moves = function (y) {
 		// $player1bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		Runner.pong.leftPaddle.setpos(Runner.pong.leftPaddle.x, y);
+		Runner.pong.paddle[0].setpos(Runner.pong.paddle[0].x, y);
 	};
 
 	var onPlayer2Moves = function (y) {
 		// $player2bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		Runner.pong.rightPaddle.setpos(Runner.pong.rightPaddle.x, y);
+		Runner.pong.paddle[1].setpos(Runner.pong.paddle[1].x, y);
 	};
 
 	var onPlayer1Leaves = function (playerid) {
