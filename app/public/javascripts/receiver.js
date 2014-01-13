@@ -6,20 +6,15 @@ var Receiver = function (options){
 
 	var socket;
 
-	var game = null;
-
 	var init = function () {
 		initSocket();
 
-		Game.ready(function() {
-			game = Game.start(Pong);
-			window.mygame = game; // to debug in console
+		Runner.init();
 
-			// setTimeout(function () {
-			// 	game.start(); //debug
-			// }, 1000);
-
+		$("#court").click(function (event) {
+			Runner.pong.play();
 		});
+
 	};
 
 	var initSocket = function (){
@@ -73,12 +68,12 @@ var Receiver = function (options){
 
 	var onPlayer1Moves = function (y) {
 		// $player1bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		mygame.leftPaddle.setpos(mygame.leftPaddle.x, y);
+		Runner.pong.leftPaddle.setpos(Runner.pong.leftPaddle.x, y);
 	};
 
 	var onPlayer2Moves = function (y) {
 		// $player2bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		mygame.rightPaddle.setpos(mygame.rightPaddle.x, y);
+		Runner.pong.rightPaddle.setpos(Runner.pong.rightPaddle.x, y);
 	};
 
 	var onPlayer1Leaves = function (playerid) {

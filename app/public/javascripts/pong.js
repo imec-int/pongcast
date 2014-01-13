@@ -1,16 +1,51 @@
+if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+	window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
+                                   window.mozRequestAnimationFrame    ||
+                                   window.oRequestAnimationFrame      ||
+                                   window.msRequestAnimationFrame     ||
+                                   function(callback, element) {
+                                       window.setTimeout(callback, 1000 / 60);
+                                   }
+}
+
+
+Runner = {
+	init: function() {
+		this.pong = Object.create(Pong);
+		this.pong.init(this);
+	},
+
+	start: function() { // game instance should call runner.start() when its finished initializing and is reavy to start the game loop
+		this.lastFrame = Date.now();
+		requestAnimationFrame( this.loop.bind(this) );
+	},
+
+	loop: function() {
+		var start  = Date.now();
+		this.update((start - this.lastFrame)/1000.0); // send dt as seconds
+		this.lastFrame = start;
+
+		requestAnimationFrame( this.loop.bind(this) )
+	},
+
+	update: function(dt) {
+		this.pong.update(dt);
+	}
+}
+
+
 //=============================================================================
 // PONG
 //=============================================================================
 
 Pong = {
 
-	Defaults: {
-		width:        1280,   // logical canvas width (browser will scale to physical canvas size - which is controlled by @media css queries)
-		height:       720,   // logical canvas height (ditto)
+	cfg: {
+		width:        1280,
+		height:       720,
 		wallWidth:    12,
 		paddleWidth:  30,
 		paddleHeight: 200,
-		paddleSpeed:  2,     // should be able to cross court vertically   in 2 seconds
 		ballSpeed:    2,     // should be able to cross court horizontally in 4 seconds, at starting speed ...
 		ballAccel:    8,     // ... but accelerate as time passes
 		ballRadius:   25/2
@@ -18,81 +53,78 @@ Pong = {
 
 	//-----------------------------------------------------------------------------
 
-	initialize: function(runner, cfg) {
-		this.cfg         = cfg;
+	init: function(runner) {
+		this.paddleEl = [null, null];
+		this.paddleEl[0] = document.getElementById('paddle0');
+		this.paddleEl[1] = document.getElementById('paddle1');
+
 		this.runner      = runner;
-		this.width       = runner.width;
-		this.height      = runner.height;
-		this.playing     = false;
 		this.scores      = [0, 0];
-		this.court       = Object.construct(Pong.Court,  this);
-		this.leftPaddle  = Object.construct(Pong.Paddle, this, 0);
-		this.rightPaddle = Object.construct(Pong.Paddle, this, 1);
-		this.ball        = Object.construct(Pong.Ball,   this);
+
+		this.court       = Object.create(Pong.Court);
+
+		this.paddle = [null, null];
+
+		this.paddle[0]  = Object.create(Pong.Paddle);
+		this.paddle[0].init(this, 0);
+
+		this.paddle[1] = Object.create(Pong.Paddle);
+		this.paddle[1].init(this, 1);
+
+		this.ball        = Object.create(Pong.Ball);
+		this.ball.init(this);
+
+		this.reset();
+
 		this.runner.start();
 	},
 
-	start: function() {
-		if (this.playing) return;
-
+	reset: function () {
 		this.scores = [0, 0];
-		this.playing = true;
+		this.playing = false;
 		this.ball.reset();
 		this.court.reset();
+		this.ended = false;
 	},
 
-	stop: function(ask) {
-		if (this.playing) {
-			this.playing = false;
-		}
+	play: function() {
+		if (this.playing) return;
+
+		if(this.ended) this.reset();
+		this.playing = true;
+	},
+
+	pause: function() {
+		this.playing = false;
+	},
+
+	end: function () {
+		this.pause();
+		this.ended = true;
 	},
 
 	goal: function(playerNo) {
 		this.scores[playerNo] += 1;
 		if (this.scores[playerNo] == 4) {
 			this.court.declareWinner(playerNo);
-			this.stop();
+			this.end();
 		}
 		else {
 			this.ball.reset(playerNo);
+			this.pause();
 		}
 		this.court.updatePlayerScore(playerNo, this.scores[playerNo]);
 	},
 
 	update: function(dt) {
-		this.leftPaddle.update(dt, this.ball);
-		this.rightPaddle.update(dt, this.ball);
-		if (this.playing) {
-			var dx = this.ball.dx;
-			var dy = this.ball.dy;
-			this.ball.update(dt, this.leftPaddle, this.rightPaddle);
-			if (this.ball.left > this.width)
-				this.goal(0);
-			else if (this.ball.right < 0)
-				this.goal(1);
-		}
-	},
+		if (!this.playing) return;
 
-	onkeydown: function(keyCode) {
-		switch(keyCode) {
-			case Game.KEY.ZERO: this.startDemo();            break;
-			case Game.KEY.ONE:  this.startSinglePlayer();    break;
-			case Game.KEY.TWO:  this.startDoublePlayer();    break;
-			case Game.KEY.ESC:  this.stop(true);             break;
-			case Game.KEY.Q:    this.leftPaddle.moveUp();    break;
-			case Game.KEY.A:    this.leftPaddle.moveDown();  break;
-			case Game.KEY.P:    this.rightPaddle.moveUp();   break;
-			case Game.KEY.L:    this.rightPaddle.moveDown(); break;
-		}
-	},
+		this.ball.update(dt, this.paddle[0], this.paddle[1]);
 
-	onkeyup: function(keyCode) {
-		switch(keyCode) {
-			case Game.KEY.Q: this.leftPaddle.stopMovingUp();    break;
-			case Game.KEY.A: this.leftPaddle.stopMovingDown();  break;
-			case Game.KEY.P: this.rightPaddle.stopMovingUp();   break;
-			case Game.KEY.L: this.rightPaddle.stopMovingDown(); break;
-		}
+		if (this.ball.left > this.cfg.width)
+			this.goal(0);
+		else if (this.ball.right < 0)
+			this.goal(1);
 	},
 
 	//=============================================================================
@@ -100,28 +132,6 @@ Pong = {
 	//=============================================================================
 
 	Court: {
-
-		initialize: function(pong) {
-			var w  = pong.width;
-			var h  = pong.height;
-			var ww = pong.cfg.wallWidth;
-
-			this.ww    = ww;
-			this.walls = [];
-			this.walls.push({x: 0, y: 0,      width: w, height: ww});
-			this.walls.push({x: 0, y: h - ww, width: w, height: ww});
-			var nMax = (h / (ww*2));
-			for(var n = 0 ; n < nMax ; n++) { // draw dashed halfway line
-				this.walls.push({x: (w / 2) - (ww / 2),
-												 y: (ww / 2) + (ww * 2 * n),
-												 width: ww, height: ww});
-			}
-
-			var sw = 3*ww;
-			var sh = 4*ww;
-			this.score1 = {x: 0.5 + (w/2) - 1.5*ww - sw, y: 2*ww, w: sw, h: sh};
-			this.score2 = {x: 0.5 + (w/2) + 1.5*ww,      y: 2*ww, w: sw, h: sh};
-		},
 
 		updatePlayerScore: function (playerNo, score) {
 			$("#score"+playerNo).html(score);
@@ -146,17 +156,15 @@ Pong = {
 
 	Paddle: {
 
-		initialize: function(pong, playerNo) {
+		init: function(pong, playerNo) {
 			this.playerNo = playerNo;
 
 			this.pong   = pong;
 			this.width  = pong.cfg.paddleWidth;
 			this.height = pong.cfg.paddleHeight;
 			this.minY   = pong.cfg.wallWidth;
-			this.maxY   = pong.height - pong.cfg.wallWidth - this.height;
-			this.speed  = (this.maxY - this.minY) / pong.cfg.paddleSpeed;
-			this.setpos((playerNo == 1) ? pong.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
-			this.setdir(0);
+			this.maxY   = pong.cfg.height - pong.cfg.wallWidth - this.height;
+			this.setpos((playerNo == 1) ? pong.cfg.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
 		},
 
 		setpos: function(x, y) {
@@ -170,33 +178,10 @@ Pong = {
 			this.updatePosition();
 		},
 
-		setdir: function(dy) {
-			this.up   = (dy < 0 ? -dy : 0);
-			this.down = (dy > 0 ?  dy : 0);
-		},
-
-		update: function(dt, ball) {
-			var amount = this.down - this.up;
-			if (amount != 0) {
-				var y = this.y + (amount * dt * this.speed);
-				if (y < this.minY)
-					y = this.minY;
-				else if (y > this.maxY)
-					y = this.maxY;
-				this.setpos(this.x, y);
-			}
-		},
-
 		updatePosition: function() {
-			console.log(this.playerNo);
-			document.getElementById('paddle'+this.playerNo).style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
-		},
-
-		moveUp:         function() { this.up   = 1; },
-		moveDown:       function() { this.down = 1; },
-		stopMovingUp:   function() { this.up   = 0; },
-		stopMovingDown: function() { this.down = 0; }
-
+			//console.log(this.playerNo);
+			this.pong.paddleEl[this.playerNo].style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
+		}
 	},
 
 	//=============================================================================
@@ -205,20 +190,31 @@ Pong = {
 
 	Ball: {
 
-		initialize: function(pong) {
+		init: function(pong) {
 			this.pong    = pong;
 			this.radius  = pong.cfg.ballRadius;
 			this.minX    = this.radius;
-			this.maxX    = pong.width - this.radius;
+			this.maxX    = pong.cfg.width - this.radius;
 			this.minY    = pong.cfg.wallWidth + this.radius;
-			this.maxY    = pong.height - pong.cfg.wallWidth - this.radius;
+			this.maxY    = pong.cfg.height - pong.cfg.wallWidth - this.radius;
 			this.speed   = (this.maxX - this.minX) / pong.cfg.ballSpeed;
 			this.accel   = pong.cfg.ballAccel;
+
+			console.log('maxX: ' + this.maxX + ', minX: ' + this.minX);
+			console.log('speed: ' + this.speed);
+
+			this.reset(0);
 		},
 
 		reset: function(playerNo) {
-			this.setpos(playerNo == 1 ?   this.maxX : this.minX,  Game.random(this.minY, this.maxY));
-			this.setdir(playerNo == 1 ? -this.speed : this.speed, this.speed);
+			if(!playerNo) playerNo = 0;
+
+			this.setpos( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y + this.radius, this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.radius) );
+
+			this.setdir( playerNo == 0 ?  this.speed : -this.speed ,  this.speed );
+
+			console.log(this.x);
+			console.log(this.y);
 		},
 
 		setpos: function(x, y) {
@@ -232,50 +228,50 @@ Pong = {
 			this.updatePosition();
 		},
 
-		setdir: function(dx, dy) {
-			this.dx = dx;
-			this.dy = dy;
+		setdir: function(vx, vy) {
+			this.vx = vx;
+			this.vy = vy;
+
+			//console.log('vx: ' + this.vx);
 		},
 
 		update: function(dt, leftPaddle, rightPaddle) {
 
-			pos = Pong.Helper.accelerate(this.x, this.y, this.dx, this.dy, this.accel, dt);
+			var pos = Pong.Helper.move(this.x, this.y, this.vx, this.vy, this.accel, dt);
 
-			if ((pos.dy > 0) && (pos.y > this.maxY)) {
+			// check if the ball is smashing against the upper or lower wall:
+			if ((pos.vy > 0) && (pos.y > this.maxY)) {
 				pos.y = this.maxY;
-				pos.dy = -pos.dy;
+				pos.vy = -pos.vy;
 			}
-			else if ((pos.dy < 0) && (pos.y < this.minY)) {
+			else if ((pos.vy < 0) && (pos.y < this.minY)) {
 				pos.y = this.minY;
-				pos.dy = -pos.dy;
+				pos.vy = -pos.vy;
 			}
 
-			var paddle = (pos.dx < 0) ? leftPaddle : rightPaddle;
+
+			var paddle = (pos.vx < 0) ? leftPaddle : rightPaddle;
 			var pt     = Pong.Helper.ballIntercept(this, paddle, pos.nx, pos.ny);
 
 			if (pt) {
+				console.log(pt.d);
+
 				switch(pt.d) {
 					case 'left':
 					case 'right':
 						pos.x = pt.x;
-						pos.dx = -pos.dx;
+						pos.vx = -pos.vx;
 						break;
 					case 'top':
 					case 'bottom':
 						pos.y = pt.y;
-						pos.dy = -pos.dy;
+						pos.vy = -pos.vy;
 						break;
 				}
-
-				// add/remove spin based on paddle direction
-				if (paddle.up)
-					pos.dy = pos.dy * (pos.dy < 0 ? 0.5 : 1.5);
-				else if (paddle.down)
-					pos.dy = pos.dy * (pos.dy > 0 ? 0.5 : 1.5);
 			}
 
 			this.setpos(pos.x,  pos.y);
-			this.setdir(pos.dx, pos.dy);
+			this.setdir(pos.vx, pos.vy);
 		},
 
 		updatePosition: function() {
@@ -290,12 +286,16 @@ Pong = {
 
 	Helper: {
 
-		accelerate: function(x, y, dx, dy, accel, dt) {
-			var x2  = x + (dt * dx) + (accel * dt * dt * 0.5);
-			var y2  = y + (dt * dy) + (accel * dt * dt * 0.5);
-			var dx2 = dx + (accel * dt) * (dx > 0 ? 1 : -1);
-			var dy2 = dy + (accel * dt) * (dy > 0 ? 1 : -1);
-			return { nx: (x2-x), ny: (y2-y), x: x2, y: y2, dx: dx2, dy: dy2 };
+		random: function(min, max) {
+			return (min + (Math.random() * (max - min)));
+		},
+
+		move: function(x, y, vx, vy, accel, dt) {
+			var x2  = x + (dt * vx) + (accel * dt * dt * 0.5);
+			var y2  = y + (dt * vy) + (accel * dt * dt * 0.5);
+			var vx2 = vx + (accel * dt) * (vx > 0 ? 1 : -1);
+			var vy2 = vy + (accel * dt) * (vy > 0 ? 1 : -1);
+			return { nx: (x2-x), ny: (y2-y), x: x2, y: y2, vx: vx2, vy: vy2 };
 		},
 
 		intercept: function(x1, y1, x2, y2, x3, y3, x4, y4, d) {
