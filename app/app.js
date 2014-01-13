@@ -72,10 +72,15 @@ function findChromecastAndRunApp (app, callback) {
 	console.log("> Looking for Chromecast...");
 
 	chromecast.on('device', function (device){
-		console.log("> Found Chromecast: " + device.name.replace(/&apos;/, "'") );
+		var deviceName = device.name.replace(/&apos;/, "'");
+		console.log("> Found Chromecast: " + deviceName );
 		console.log("> Launching app " + app.appid + ", Chromecast will try to connect to " + app.receiverurl);
 		console.log("> If you get a 'brainfreeze error', you're receiver url is probably not accesable from the Chromecast.");
-		device.launch(app.appid, {v:''}, callback);
+		console.log("> If your Chromecast undertakes no action, then their's probably something wrong with your whitelisted urls (eg: wrong Chromecast)");
+		device.launch(app.appid, {v:''}, function (err) {
+			if(err) return callback(err);
+			return callback(null, deviceName);
+		});
 	});
 
 	chromecast.discover();
