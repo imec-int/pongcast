@@ -129,15 +129,11 @@ Pong = {
 			this.playerNo = playerNo;
 			this.paddleEl = document.getElementById('paddle'+this.playerNo);
 
-
-
 			this.pong   = pong;
 			this.width  = $(this.paddleEl).width();
 			this.height = $(this.paddleEl).height();
 			this.minY   = 0;
 			this.maxY   = pong.height - this.height;
-
-			console.log(this.pong.width);
 
 			this.setpos( (playerNo == 1) ? this.pong.width - this.width : 0, (this.pong.height - this.height)/2 );
 		},

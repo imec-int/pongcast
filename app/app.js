@@ -150,6 +150,7 @@ function listenToPlayer (playersocket, playerid) {
 
 function rotation2y (rotation) {
 	var degrees = rotation.lr;
+	var courtHeight = 696;
 	var barHeight = 200; //height of the pong bar, see receiver.styl
 
 	if(degrees>180)
@@ -166,7 +167,7 @@ function rotation2y (rotation) {
 
 
 
-	y = y * (config.chromecastSpecs.height - barHeight)/150; // now it ranges from 0 to window height
+	y = y * (courtHeight - barHeight)/150; // now it ranges from 0 to window height
 	return y;
 };
 
