@@ -41,38 +41,34 @@ Runner = {
 Pong = {
 
 	cfg: {
-		width:        1280,
-		height:       720,
-		wallWidth:    12,
-		paddleWidth:  30,
-		paddleHeight: 200,
 		ballSpeed:    2,     // should be able to cross court horizontally in 4 seconds, at starting speed ...
 		ballAccel:    8,     // ... but accelerate as time passes
-		ballRadius:   25/2
 	},
 
 	//-----------------------------------------------------------------------------
 
 	init: function(runner) {
-		this.paddleEl = [null, null];
-		this.paddleEl[0] = document.getElementById('paddle0');
-		this.paddleEl[1] = document.getElementById('paddle1');
-
 		this.runner      = runner;
+
+		this.courtEl     = document.getElementById('court');
+		this.width       = $(this.courtEl).width();
+		this.height      = $(this.courtEl).height();
+
 		this.scores      = [0, 0];
 
 		this.court       = Object.create(Pong.Court);
 
-		this.paddle = [null, null];
+		this.paddle      = [null, null];
 
-		this.paddle[0]  = Object.create(Pong.Paddle);
+		this.paddle[0]   = Object.create(Pong.Paddle);
 		this.paddle[0].init(this, 0);
 
-		this.paddle[1] = Object.create(Pong.Paddle);
+		this.paddle[1]   = Object.create(Pong.Paddle);
 		this.paddle[1].init(this, 1);
 
 		this.ball        = Object.create(Pong.Ball);
 		this.ball.init(this);
+
 
 		this.reset();
 
@@ -92,6 +88,8 @@ Pong = {
 
 		if(this.ended) this.reset();
 		this.playing = true;
+
+		this.ball.move();
 	},
 
 	pause: function() {
@@ -158,13 +156,19 @@ Pong = {
 
 		init: function(pong, playerNo) {
 			this.playerNo = playerNo;
+			this.paddleEl = document.getElementById('paddle'+this.playerNo);
+
+
 
 			this.pong   = pong;
-			this.width  = pong.cfg.paddleWidth;
-			this.height = pong.cfg.paddleHeight;
-			this.minY   = pong.cfg.wallWidth;
-			this.maxY   = pong.cfg.height - pong.cfg.wallWidth - this.height;
-			this.setpos((playerNo == 1) ? pong.cfg.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
+			this.width  = $(this.paddleEl).width();
+			this.height = $(this.paddleEl).height();
+			this.minY   = 0;
+			this.maxY   = pong.height - this.height;
+
+			console.log(this.pong.width);
+
+			this.setpos( (playerNo == 1) ? this.pong.width - this.width : 0, (this.pong.height - this.height)/2 );
 		},
 
 		setpos: function(x, y) {
@@ -180,7 +184,7 @@ Pong = {
 
 		updatePosition: function() {
 			//console.log(this.playerNo);
-			this.pong.paddleEl[this.playerNo].style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
+			this.paddleEl.style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
 		}
 	},
 
@@ -192,16 +196,17 @@ Pong = {
 
 		init: function(pong) {
 			this.pong    = pong;
-			this.radius  = pong.cfg.ballRadius;
-			this.minX    = this.radius;
-			this.maxX    = pong.cfg.width - this.radius;
-			this.minY    = pong.cfg.wallWidth + this.radius;
-			this.maxY    = pong.cfg.height - pong.cfg.wallWidth - this.radius;
+			this.ballEl  = document.getElementById('ball');
+
+			this.size    = $(this.ballEl).width();
+			this.radius  = this.size/2;
+
+			this.minX    = 0;
+			this.maxX    = this.pong.width - this.size;
+			this.minY    = 0;
+			this.maxY    = this.pong.height - this.size;
 			this.speed   = (this.maxX - this.minX) / pong.cfg.ballSpeed;
 			this.accel   = pong.cfg.ballAccel;
-
-			console.log('maxX: ' + this.maxX + ', minX: ' + this.minX);
-			console.log('speed: ' + this.speed);
 
 			this.reset(0);
 		},
@@ -209,21 +214,18 @@ Pong = {
 		reset: function(playerNo) {
 			if(!playerNo) playerNo = 0;
 
-			this.setpos( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y + this.radius, this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.radius) );
+			this.setpos( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y , this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.size) );
 
-			this.setdir( playerNo == 0 ?  this.speed : -this.speed ,  this.speed );
-
-			console.log(this.x);
-			console.log(this.y);
+			this.setdir( playerNo == 0 ?  this.speed : -this.speed ,  -this.speed );
 		},
 
 		setpos: function(x, y) {
 			this.x      = x;
 			this.y      = y;
-			this.left   = this.x - this.radius;
-			this.top    = this.y - this.radius;
-			this.right  = this.x + this.radius;
-			this.bottom = this.y + this.radius;
+			this.left   = this.x;
+			this.top    = this.y;
+			this.right  = this.x + this.size;
+			this.bottom = this.y + this.size;
 
 			this.updatePosition();
 		},
@@ -232,10 +234,51 @@ Pong = {
 			this.vx = vx;
 			this.vy = vy;
 
+			this.dirX = vx;
+			this.dirY = vy;
+
 			//console.log('vx: ' + this.vx);
 		},
 
+		move: function (argument) {
+			console.log('ball move');
+
+			// y = rico*x + b
+			// b = y - rico*x
+
+			var rico = this.dirY/this.dirX;
+			var b    = this.y - rico*this.x;
+
+			// upper wall: y = this.minY
+			// lower wall: y = this.maxY;
+
+			//  left bounder (paddle 0): x = this.minX + this.pong.paddle[0].width
+			// right bounder (paddle 1): x = this.maxX - this.pong.paddle[1].width
+
+
+			// crossing point with upper wall:
+			var y_upperwall = this.minY;
+			var x_upperwall = (y_upperwall-b)/rico;
+
+			// crossing point with lower wall:
+			var y_lowerwall = this.maxY;
+			var x_lowerwall = (y_lowerwall-b)/rico;
+
+			// crossing point with paddle 0:
+			var x_paddle0 = this.minX + this.pong.paddle[0].width;
+			var y_paddle0 = rico*x_paddle0 + b;
+
+			// crossing point with paddle 1:
+			var x_paddle1 = this.maxX - this.pong.paddle[1].width;
+			var y_paddle1 = rico*x_paddle1 + b;
+
+
+			// debug, lets got to upperwall crossing point:
+			this.updatePosition(x_upperwall, y_upperwall);
+		},
+
 		update: function(dt, leftPaddle, rightPaddle) {
+			return;
 
 			var pos = Pong.Helper.move(this.x, this.y, this.vx, this.vy, this.accel, dt);
 
@@ -254,8 +297,6 @@ Pong = {
 			var pt     = Pong.Helper.ballIntercept(this, paddle, pos.nx, pos.ny);
 
 			if (pt) {
-				console.log(pt.d);
-
 				switch(pt.d) {
 					case 'left':
 					case 'right':
@@ -274,8 +315,10 @@ Pong = {
 			this.setdir(pos.vx, pos.vy);
 		},
 
-		updatePosition: function() {
-			document.getElementById('ball').style.webkitTransform = 'translate3d('+(this.x-this.radius)+'px,'+(this.y-2*this.radius)+'px,0) scale3d(1,1,1)';
+		updatePosition: function(x, y) {
+			if(x !== undefined) this.x = x;
+			if(y !== undefined) this.y = y;
+			this.ballEl.style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
 		}
 
 	},
