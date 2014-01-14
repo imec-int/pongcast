@@ -231,7 +231,7 @@ Pong = {
 			var y_paddle1 = rico*x_paddle1 + b;
 
 
-			// find out witch intersection layes inside the court:
+			// find out which intersection layes inside the court:
 			if( this.lastintersection != 'upperwall' && Pong.Helper.isInRect(x_upperwall, y_upperwall, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
 
 				console.log("x_upperwall: " + x_upperwall + ", this.minX: " + x_paddle0);
