@@ -9,31 +9,6 @@ if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimatio
 }
 
 
-Runner = {
-	init: function() {
-		this.pong = Object.create(Pong);
-		this.pong.init(this);
-	},
-
-	start: function() { // game instance should call runner.start() when its finished initializing and is reavy to start the game loop
-		this.lastFrame = Date.now();
-		requestAnimationFrame( this.loop.bind(this) );
-	},
-
-	loop: function() {
-		var start  = Date.now();
-		this.update((start - this.lastFrame)/1000.0); // send dt as seconds
-		this.lastFrame = start;
-
-		requestAnimationFrame( this.loop.bind(this) )
-	},
-
-	update: function(dt) {
-		this.pong.update(dt);
-	}
-}
-
-
 //=============================================================================
 // PONG
 //=============================================================================
@@ -41,8 +16,8 @@ Runner = {
 Pong = {
 
 	cfg: {
-		ballSpeed:    2,     // should be able to cross court horizontally in 4 seconds, at starting speed ...
-		ballAccel:    8,     // ... but accelerate as time passes
+		ballSpeed:    2,     // in pixels per milliseconds
+		ballAccel:    8
 	},
 
 	//-----------------------------------------------------------------------------
@@ -71,8 +46,6 @@ Pong = {
 
 
 		this.reset();
-
-		this.runner.start();
 	},
 
 	reset: function () {
@@ -89,7 +62,7 @@ Pong = {
 		if(this.ended) this.reset();
 		this.playing = true;
 
-		this.ball.move();
+		this.ball.startMoving();
 	},
 
 	pause: function() {
@@ -116,8 +89,6 @@ Pong = {
 
 	update: function(dt) {
 		if (!this.playing) return;
-
-		this.ball.update(dt, this.paddle[0], this.paddle[1]);
 
 		if (this.ball.left > this.cfg.width)
 			this.goal(0);
@@ -214,34 +185,25 @@ Pong = {
 		reset: function(playerNo) {
 			if(!playerNo) playerNo = 0;
 
-			this.setpos( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y , this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.size) );
+			this.goToPosition( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y , this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.size) );
 
 			this.setdir( playerNo == 0 ?  this.speed : -this.speed ,  -this.speed );
+
+			this.lastintersection = '';
 		},
 
-		setpos: function(x, y) {
-			this.x      = x;
-			this.y      = y;
-			this.left   = this.x;
-			this.top    = this.y;
-			this.right  = this.x + this.size;
-			this.bottom = this.y + this.size;
-
-			this.updatePosition();
+		setdir: function(dirX, dirY) {
+			this.dirX = dirX;
+			this.dirY = dirY;
 		},
 
-		setdir: function(vx, vy) {
-			this.vx = vx;
-			this.vy = vy;
-
-			this.dirX = vx;
-			this.dirY = vy;
-
-			//console.log('vx: ' + this.vx);
+		startMoving: function () {
+			this.ballEl.addEventListener("webkitTransitionEnd", this.move.bind(this), true);
+			this.move();
 		},
 
 		move: function (argument) {
-			console.log('ball move');
+			// console.log('ball move');
 
 			// y = rico*x + b
 			// b = y - rico*x
@@ -256,69 +218,68 @@ Pong = {
 			// right bounder (paddle 1): x = this.maxX - this.pong.paddle[1].width
 
 
-			// crossing point with upper wall:
+			// intersection with upper wall:
 			var y_upperwall = this.minY;
 			var x_upperwall = (y_upperwall-b)/rico;
 
-			// crossing point with lower wall:
+			// intersection with lower wall:
 			var y_lowerwall = this.maxY;
 			var x_lowerwall = (y_lowerwall-b)/rico;
 
-			// crossing point with paddle 0:
+			// intersection with paddle 0:
 			var x_paddle0 = this.minX + this.pong.paddle[0].width;
 			var y_paddle0 = rico*x_paddle0 + b;
 
-			// crossing point with paddle 1:
+			// intersection with paddle 1:
 			var x_paddle1 = this.maxX - this.pong.paddle[1].width;
 			var y_paddle1 = rico*x_paddle1 + b;
 
 
-			// debug, lets got to upperwall crossing point:
-			this.updatePosition(x_upperwall, y_upperwall);
+			// find out witch intersection layes inside the court:
+			if( this.lastintersection != 'upperwall' && Pong.Helper.isInRect(x_upperwall, y_upperwall, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
+
+				console.log("x_upperwall: " + x_upperwall + ", this.minX: " + x_paddle0);
+
+				console.log('upperwall');
+				this.lastintersection = 'upperwall';
+				this.dirY = -this.dirY;
+				this.goToPosition(x_upperwall, y_upperwall);
+				return;
+			}
+
+			if( this.lastintersection != 'lowerwall' && Pong.Helper.isInRect(x_lowerwall, y_lowerwall, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
+				console.log('lowerwall');
+				this.lastintersection = 'lowerwall';
+				this.dirY = -this.dirY;
+				this.goToPosition(x_lowerwall, y_lowerwall);
+				return;
+			}
+
+			if( this.lastintersection != 'paddle0' && Pong.Helper.isInRect(x_paddle0, y_paddle0, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
+				console.log('paddle0');
+				this.lastintersection = 'paddle0';
+				this.dirX = -this.dirX;
+				this.goToPosition(x_paddle0, y_paddle0);
+				return;
+			}
+
+			if( this.lastintersection != 'paddle1' && Pong.Helper.isInRect(x_paddle1, y_paddle1, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
+				console.log('paddle1');
+				this.lastintersection = 'paddle1';
+				this.dirX = -this.dirX;
+				this.goToPosition(x_paddle1, y_paddle1);
+				return;
+			}
 		},
 
-		update: function(dt, leftPaddle, rightPaddle) {
-			return;
 
-			var pos = Pong.Helper.move(this.x, this.y, this.vx, this.vy, this.accel, dt);
-
-			// check if the ball is smashing against the upper or lower wall:
-			if ((pos.vy > 0) && (pos.y > this.maxY)) {
-				pos.y = this.maxY;
-				pos.vy = -pos.vy;
-			}
-			else if ((pos.vy < 0) && (pos.y < this.minY)) {
-				pos.y = this.minY;
-				pos.vy = -pos.vy;
-			}
-
-
-			var paddle = (pos.vx < 0) ? leftPaddle : rightPaddle;
-			var pt     = Pong.Helper.ballIntercept(this, paddle, pos.nx, pos.ny);
-
-			if (pt) {
-				switch(pt.d) {
-					case 'left':
-					case 'right':
-						pos.x = pt.x;
-						pos.vx = -pos.vx;
-						break;
-					case 'top':
-					case 'bottom':
-						pos.y = pt.y;
-						pos.vy = -pos.vy;
-						break;
-				}
-			}
-
-			this.setpos(pos.x,  pos.y);
-			this.setdir(pos.vx, pos.vy);
-		},
-
-		updatePosition: function(x, y) {
-			if(x !== undefined) this.x = x;
-			if(y !== undefined) this.y = y;
-			this.ballEl.style.webkitTransform = 'translate3d('+(this.x)+'px,'+(this.y)+'px,0) scale3d(1,1,1)';
+		goToPosition: function (x, y) {
+			var distance = Math.sqrt( (y-this.y)*(y-this.y) + (x-this.x)*(x-this.x) );
+			var time = distance/this.pong.cfg.ballSpeed;
+			this.ballEl.style.webkitTransitionDuration = time/1000 + 's';
+			this.ballEl.style.webkitTransform = 'translate3d('+x+'px,'+y+'px,0) scale3d(1,1,1)';
+			this.x = x;
+			this.y = y;
 		}
 
 	},
@@ -333,67 +294,12 @@ Pong = {
 			return (min + (Math.random() * (max - min)));
 		},
 
-		move: function(x, y, vx, vy, accel, dt) {
-			var x2  = x + (dt * vx) + (accel * dt * dt * 0.5);
-			var y2  = y + (dt * vy) + (accel * dt * dt * 0.5);
-			var vx2 = vx + (accel * dt) * (vx > 0 ? 1 : -1);
-			var vy2 = vy + (accel * dt) * (vy > 0 ? 1 : -1);
-			return { nx: (x2-x), ny: (y2-y), x: x2, y: y2, vx: vx2, vy: vy2 };
-		},
-
-		intercept: function(x1, y1, x2, y2, x3, y3, x4, y4, d) {
-			var denom = ((y4-y3) * (x2-x1)) - ((x4-x3) * (y2-y1));
-			if (denom != 0) {
-				var ua = (((x4-x3) * (y1-y3)) - ((y4-y3) * (x1-x3))) / denom;
-				if ((ua >= 0) && (ua <= 1)) {
-					var ub = (((x2-x1) * (y1-y3)) - ((y2-y1) * (x1-x3))) / denom;
-					if ((ub >= 0) && (ub <= 1)) {
-						var x = x1 + (ua * (x2-x1));
-						var y = y1 + (ua * (y2-y1));
-						return { x: x, y: y, d: d};
-					}
-				}
-			}
-			return null;
-		},
-
-		ballIntercept: function(ball, rect, nx, ny) {
-			var pt;
-			if (nx < 0) {
-				pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny,
-																	 rect.right  + ball.radius,
-																	 rect.top    - ball.radius,
-																	 rect.right  + ball.radius,
-																	 rect.bottom + ball.radius,
-																	 "right");
-			}
-			else if (nx > 0) {
-				pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny,
-																	 rect.left   - ball.radius,
-																	 rect.top    - ball.radius,
-																	 rect.left   - ball.radius,
-																	 rect.bottom + ball.radius,
-																	 "left");
-			}
-			if (!pt) {
-				if (ny < 0) {
-					pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny,
-																		 rect.left   - ball.radius,
-																		 rect.bottom + ball.radius,
-																		 rect.right  + ball.radius,
-																		 rect.bottom + ball.radius,
-																		 "bottom");
-				}
-				else if (ny > 0) {
-					pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny,
-																		 rect.left   - ball.radius,
-																		 rect.top    - ball.radius,
-																		 rect.right  + ball.radius,
-																		 rect.top    - ball.radius,
-																		 "top");
-				}
-			}
-			return pt;
+		isInRect: function (x, y, rectMinX, rectMaxX, rectMinY, rectMaxY) {
+			if(x < rectMinX) return false;
+			if(x > rectMaxX) return false;
+			if(y < rectMinY) return false;
+			if(y > rectMaxY) return false;
+			return true;
 		}
 
 	}

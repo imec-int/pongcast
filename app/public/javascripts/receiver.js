@@ -5,14 +5,16 @@ var Receiver = function (options){
 	var $player2bar = $("#player2bar");
 
 	var socket;
+	var pong;
 
 	var init = function () {
 		initSocket();
 
-		Runner.init();
+		pong = Object.create(Pong);
+		pong.init(this);
 
 		$("#court").click(function (event) {
-			Runner.pong.play();
+			pong.play();
 		});
 
 	};
@@ -68,12 +70,12 @@ var Receiver = function (options){
 
 	var onPlayer1Moves = function (y) {
 		// $player1bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		Runner.pong.paddle[0].setpos(Runner.pong.paddle[0].x, y);
+		pong.paddle[0].setpos(pong.paddle[0].x, y);
 	};
 
 	var onPlayer2Moves = function (y) {
 		// $player2bar[0].style.webkitTransform = 'translate3d(0px,'+y+'px,0)';
-		Runner.pong.paddle[1].setpos(Runner.pong.paddle[1].x, y);
+		pong.paddle[1].setpos(pong.paddle[1].x, y);
 	};
 
 	var onPlayer1Leaves = function (playerid) {
