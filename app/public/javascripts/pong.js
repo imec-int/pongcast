@@ -5,7 +5,7 @@
 Pong = {
 
 	cfg: {
-		ballSpeed:    2     // in pixels per milliseconds
+		ballSpeed:    1.5     // in pixels per milliseconds
 	},
 
 	//-----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ Pong = {
 			this.isMoving = false;
 		},
 
-		move: function (argument) {
+		move: function () {
 			// some mathematics:
 
 			// y = rico*x + b
@@ -227,7 +227,7 @@ Pong = {
 
 			if( this.lastintersection == 'paddle0'){
 				// check if ball hits paddles:
-				if(this.y < this.pong.paddle[0].top || this.y > this.pong.paddle[0].bottom){
+				if(this.y < this.pong.paddle[0].top-this.radius || this.y > this.pong.paddle[0].bottom-this.radius){
 					// ball did not hit paddle 0
 					// fly outside court
 
@@ -249,7 +249,7 @@ Pong = {
 
 			if( this.lastintersection == 'paddle1'){
 				// check if ball hits paddles:
-				if(this.y < this.pong.paddle[1].top || this.y > this.pong.paddle[1].bottom){
+				if(this.y < this.pong.paddle[1].top-this.radius || this.y > this.pong.paddle[1].bottom-this.radius){
 					// ball did not hit paddle 1
 					// fly outside court
 
