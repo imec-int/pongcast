@@ -41,7 +41,7 @@ body
 	height 200px
 	background-color paddlecolor
 	z-index 99
-	transition all 0.08s linear
+	// transition all 0.08s linear
 
 #score0, #score1
 	font-size 60px
@@ -78,7 +78,9 @@ body
 	border-radius 50%
 	width 25px
 	height 25px
-	transition all 0.5s linear
+	-webkit-transition-property -webkit-transform
+	-webkit-transition-timing-function linear
+
 
 
 .paddle0debugline

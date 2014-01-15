@@ -1,14 +1,3 @@
-if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-	window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
-                                   window.mozRequestAnimationFrame    ||
-                                   window.oRequestAnimationFrame      ||
-                                   window.msRequestAnimationFrame     ||
-                                   function(callback, element) {
-                                       window.setTimeout(callback, 1000 / 60);
-                                   }
-}
-
-
 //=============================================================================
 // PONG
 //=============================================================================
@@ -16,8 +5,7 @@ if (!window.requestAnimationFrame) {// http://paulirish.com/2011/requestanimatio
 Pong = {
 
 	cfg: {
-		ballSpeed:    2,     // in pixels per milliseconds
-		ballAccel:    8
+		ballSpeed:    2     // in pixels per milliseconds
 	},
 
 	//-----------------------------------------------------------------------------
@@ -194,7 +182,7 @@ Pong = {
 		},
 
 		startMoving: function () {
-			this.ballEl.addEventListener("webkitTransitionEnd", this.move.bind(this), true);
+			this.ballEl.addEventListener("webkitTransitionEnd", this.move.bind(this), true); // move after every transition
 			this.move();
 		},
 
@@ -239,7 +227,7 @@ Pong = {
 				console.log('upperwall');
 				this.lastintersection = 'upperwall';
 				this.dirY = -this.dirY;
-				this.goToPosition(x_upperwall, y_upperwall);
+				this.goToPosition(x_upperwall, y_upperwall, true);
 				return;
 			}
 
@@ -247,7 +235,7 @@ Pong = {
 				console.log('lowerwall');
 				this.lastintersection = 'lowerwall';
 				this.dirY = -this.dirY;
-				this.goToPosition(x_lowerwall, y_lowerwall);
+				this.goToPosition(x_lowerwall, y_lowerwall, true);
 				return;
 			}
 
@@ -255,7 +243,7 @@ Pong = {
 				console.log('paddle0');
 				this.lastintersection = 'paddle0';
 				this.dirX = -this.dirX;
-				this.goToPosition(x_paddle0, y_paddle0);
+				this.goToPosition(x_paddle0, y_paddle0, true);
 				return;
 			}
 
@@ -263,13 +251,21 @@ Pong = {
 				console.log('paddle1');
 				this.lastintersection = 'paddle1';
 				this.dirX = -this.dirX;
-				this.goToPosition(x_paddle1, y_paddle1);
+				this.goToPosition(x_paddle1, y_paddle1, true);
 				return;
 			}
 		},
 
 
-		goToPosition: function (x, y) {
+		goToPosition: function (x, y, animate) {
+			if(animate){
+				this.ballEl.style.webkitTransitionProperty = '-webkit-transform';
+				this.ballEl.style.webkitTransitionTimingFunction = 'linear';
+			}else{
+				this.ballEl.style.webkitTransitionProperty = 'none';
+				this.ballEl.style.webkitTransitionTimingFunction = '';
+			}
+
 			var distance = Math.sqrt( (y-this.y)*(y-this.y) + (x-this.x)*(x-this.x) );
 			var time = distance/this.pong.cfg.ballSpeed;
 			this.ballEl.style.webkitTransitionDuration = time/1000 + 's';
