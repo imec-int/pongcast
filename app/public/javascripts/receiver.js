@@ -51,13 +51,13 @@ var Receiver = function (options){
 	};
 
 	var onGamestart = function (volume) {
-		if(!game) return console.log("Can't start game: game not loaded");
-		game.start();
+		if(!pong) return console.log("Can't start game: game not loaded");
+		pong.start();
 	};
 
 	var onGamestop = function (volume) {
-		if(!game) return;
-		game.stop();
+		if(!pong) return;
+		pong.stop();
 	};
 
 	var onPlayer1Enters = function (playerid) {

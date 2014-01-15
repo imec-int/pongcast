@@ -75,15 +75,6 @@ Pong = {
 		this.court.updatePlayerScore(playerNo, this.scores[playerNo]);
 	},
 
-	update: function(dt) {
-		if (!this.playing) return;
-
-		if (this.ball.left > this.cfg.width)
-			this.goal(0);
-		else if (this.ball.right < 0)
-			this.goal(1);
-	},
-
 	//=============================================================================
 	// COURT
 	//=============================================================================
@@ -160,8 +151,14 @@ Pong = {
 			this.maxX    = this.pong.width - this.size;
 			this.minY    = 0;
 			this.maxY    = this.pong.height - this.size;
+
+			this.minX_out= 0 - this.size;
+			this.maxX_out= this.pong.width;
+
 			this.speed   = (this.maxX - this.minX) / pong.cfg.ballSpeed;
 			this.accel   = pong.cfg.ballAccel;
+
+			this.ballEl.addEventListener("webkitTransitionEnd", this.move.bind(this), true); // move after every transition
 
 			this.reset(0);
 		},
@@ -171,9 +168,14 @@ Pong = {
 
 			this.goToPosition( playerNo == 0 ?  this.minX+this.pong.paddle[0].width : this.maxX-this.pong.paddle[1].width , Pong.Helper.random( this.pong.paddle[playerNo].y , this.pong.paddle[playerNo].y + this.pong.paddle[playerNo].height - this.size) );
 
-			this.setdir( playerNo == 0 ?  this.speed : -this.speed ,  -this.speed );
+			// var verticalDir = Pong.Helper.random()
+			var horizontalDir = Pong.Helper.random(0.5,2);
+			var verticalDir = (Math.round(Math.random()) == 1)?1:-1;
 
-			this.lastintersection = '';
+			this.setdir( playerNo == 0 ?  horizontalDir : -horizontalDir ,  verticalDir );
+
+			this.lastintersection = null;
+			this.goal = null;
 		},
 
 		setdir: function(dirX, dirY) {
@@ -182,18 +184,19 @@ Pong = {
 		},
 
 		startMoving: function () {
-			this.ballEl.addEventListener("webkitTransitionEnd", this.move.bind(this), true); // move after every transition
+			this.isMoving = true;
 			this.move();
 		},
 
+		stopMoving: function () {
+			this.isMoving = false;
+		},
+
 		move: function (argument) {
-			// console.log('ball move');
+			// some mathematics:
 
 			// y = rico*x + b
 			// b = y - rico*x
-
-			var rico = this.dirY/this.dirX;
-			var b    = this.y - rico*this.x;
 
 			// upper wall: y = this.minY
 			// lower wall: y = this.maxY;
@@ -201,6 +204,75 @@ Pong = {
 			//  left bounder (paddle 0): x = this.minX + this.pong.paddle[0].width
 			// right bounder (paddle 1): x = this.maxX - this.pong.paddle[1].width
 
+			//  outer left bound: x = this.minX_out
+			// outer right bound: x = this.maxX_out
+
+
+			if(!this.isMoving){
+				// check if a goal was set:
+				if(this.goal != null){
+					this.pong.goal(this.goal);
+					this.goal = null;
+				}
+				return;
+			}
+
+			if( this.lastintersection == 'upperwall'){
+				this.dirY = -this.dirY;
+			}
+
+			if( this.lastintersection == 'lowerwall'){
+				this.dirY = -this.dirY;
+			}
+
+			if( this.lastintersection == 'paddle0'){
+				// check if ball hits paddles:
+				if(this.y < this.pong.paddle[0].top || this.y > this.pong.paddle[0].bottom){
+					// ball did not hit paddle 0
+					// fly outside court
+
+					// intersection with outer left bound:
+					var rico = this.dirY/this.dirX;
+					var b    = this.y - rico*this.x;
+
+					var x = this.minX_out;
+					var y = rico*x + b;
+
+					this.goToPosition(x, y, true);
+					this.goal = 1;
+					this.stopMoving();
+					return;
+				}else{
+					this.dirX = -this.dirX;
+				}
+			}
+
+			if( this.lastintersection == 'paddle1'){
+				// check if ball hits paddles:
+				if(this.y < this.pong.paddle[1].top || this.y > this.pong.paddle[1].bottom){
+					// ball did not hit paddle 1
+					// fly outside court
+
+					// intersection with outer right bound:
+					var rico = this.dirY/this.dirX;
+					var b    = this.y - rico*this.x;
+
+					var x = this.maxX_out;
+					var y = rico*x + b;
+
+					this.goToPosition(x, y, true);
+					this.goal = 0;
+					this.stopMoving();
+					return;
+				}else{
+					this.dirX = -this.dirX;
+				}
+			}
+
+
+			// finding parameters of line the ball is on:
+			var rico = this.dirY/this.dirX;
+			var b    = this.y - rico*this.x;
 
 			// intersection with upper wall:
 			var y_upperwall = this.minY;
@@ -221,36 +293,25 @@ Pong = {
 
 			// find out which intersection layes inside the court:
 			if( this.lastintersection != 'upperwall' && Pong.Helper.isInRect(x_upperwall, y_upperwall, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
-
-				console.log("x_upperwall: " + x_upperwall + ", this.minX: " + x_paddle0);
-
-				console.log('upperwall');
 				this.lastintersection = 'upperwall';
-				this.dirY = -this.dirY;
 				this.goToPosition(x_upperwall, y_upperwall, true);
 				return;
 			}
 
 			if( this.lastintersection != 'lowerwall' && Pong.Helper.isInRect(x_lowerwall, y_lowerwall, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
-				console.log('lowerwall');
 				this.lastintersection = 'lowerwall';
-				this.dirY = -this.dirY;
 				this.goToPosition(x_lowerwall, y_lowerwall, true);
 				return;
 			}
 
 			if( this.lastintersection != 'paddle0' && Pong.Helper.isInRect(x_paddle0, y_paddle0, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
-				console.log('paddle0');
 				this.lastintersection = 'paddle0';
-				this.dirX = -this.dirX;
 				this.goToPosition(x_paddle0, y_paddle0, true);
 				return;
 			}
 
 			if( this.lastintersection != 'paddle1' && Pong.Helper.isInRect(x_paddle1, y_paddle1, x_paddle0, x_paddle1, y_upperwall, y_lowerwall) ) {
-				console.log('paddle1');
 				this.lastintersection = 'paddle1';
-				this.dirX = -this.dirX;
 				this.goToPosition(x_paddle1, y_paddle1, true);
 				return;
 			}
@@ -268,8 +329,10 @@ Pong = {
 
 			var distance = Math.sqrt( (y-this.y)*(y-this.y) + (x-this.x)*(x-this.x) );
 			var time = distance/this.pong.cfg.ballSpeed;
+
 			this.ballEl.style.webkitTransitionDuration = time/1000 + 's';
 			this.ballEl.style.webkitTransform = 'translate3d('+x+'px,'+y+'px,0) scale3d(1,1,1)';
+
 			this.x = x;
 			this.y = y;
 		}
