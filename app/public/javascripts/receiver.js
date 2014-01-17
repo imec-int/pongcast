@@ -52,12 +52,12 @@ var Receiver = function (options){
 
 	var onGamestart = function (volume) {
 		if(!pong) return console.log("Can't start game: game not loaded");
-		pong.start();
+		pong.play();
 	};
 
 	var onGamestop = function (volume) {
 		if(!pong) return;
-		pong.stop();
+		//pong.stop();
 	};
 
 	var onPlayer1Enters = function (playerid) {

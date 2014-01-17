@@ -91,15 +91,15 @@ io.sockets.on('connection', function (newSocket) {
 	// let's define 2 rooms: chromecast & controller, see public/controller.js and public/receiver.js
 	newSocket.on('room', function (room) {
 
-        if( room == 'chromecast'){
-        	// enter room:
-        	newSocket.join(room);
+		if( room == 'chromecast'){
+			// enter room:
+			newSocket.join(room);
 
-        	console.log("> Chromecast app connected to this webserver.");
+			console.log("> Chromecast app connected to this webserver.");
 			console.log("> Go to '"+serverAddress+"/controller' to test it out");
 		}
 
-        if( room == 'controller' ){
+		if( room == 'controller' ){
 
 			switch (io.sockets.clients('controller').length) {
 				case 0:
@@ -116,13 +116,13 @@ io.sockets.on('connection', function (newSocket) {
 					break;
 			}
 
-        	addPlayerToGame( newSocket.playerid );
-        	listenToPlayer(newSocket, newSocket.playerid );
+			addPlayerToGame( newSocket.playerid );
+			listenToPlayer(newSocket, newSocket.playerid );
 
-        	// enter room:
-        	newSocket.join(room);
-        }
-    });
+			// enter room:
+			newSocket.join(room);
+		}
+	});
 });
 
 
@@ -139,13 +139,13 @@ function listenToPlayer (playersocket, playerid) {
 	});
 
 	playersocket.on('disconnect', function() {
-    	console.log('> player ' + playerid + ' left');
-    	io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
+		console.log('> player ' + playerid + ' left');
+		io.sockets.in('chromecast').emit('player'+playerid+'.leaves');
 
 
-    	// stop game if one disconnects
-    	io.sockets.in('chromecast').emit('game.stop');
-    });
+		// stop game if one disconnects
+		io.sockets.in('chromecast').emit('game.stop');
+	});
 }
 
 function rotation2y (rotation) {
